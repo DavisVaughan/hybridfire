@@ -56,7 +56,7 @@ hybrid_eval_call <- function(expr, mask, env) {
   fn <- hybrid_replace(fn, args)
 
   if (is_hybridizable(fn)) {
-    out <- do.call(fn, args)
+    out <- exec(fn, !!!args)
   } else {
     out <- purrr::pmap(args, fn)
   }
