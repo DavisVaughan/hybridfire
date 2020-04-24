@@ -37,6 +37,18 @@
 #'   The environment where `expr` was specified.
 #'
 hybrid_eval <- function(expr, mask = list(), env = caller_env()) {
+  out <- hybrid_eval_impl(expr, mask, env)
+
+  # Result is either a hybrid list to unwrap, or was a literal
+  # that needs to be wrapped (to standardize things)
+  if (is_hybrid_list(out)) {
+    unclass(out)
+  } else {
+    list(out)
+  }
+}
+
+hybrid_eval_impl <- function(expr, mask, env) {
   if (is.call(expr)) {
     hybrid_eval_call(expr, mask, env)
   } else if (is.symbol(expr)) {
@@ -51,17 +63,21 @@ hybrid_eval_call <- function(expr, mask, env) {
   fn <- eval_bare(fn, env = env)
 
   args <- node_cdr(expr)
-  args <- purrr::map(args, hybrid_eval, mask = mask, env = env)
+  args <- purrr::map(args, hybrid_eval_impl, mask = mask, env = env)
 
   fn <- hybrid_replace(fn, args)
 
   if (is_hybridizable(fn)) {
     out <- exec(fn, !!!args)
-  } else {
+  } else if (any_hybrid_lists(args)) {
     out <- purrr::pmap(args, fn)
+  } else {
+    out <- exec(fn, !!!args)
+    out <- list(out)
   }
 
-  out
+  # Propagate hybridness
+  new_hybrid_list(out)
 }
 
 hybrid_eval_symbol <- function(expr, mask, env) {
@@ -77,13 +93,9 @@ hybrid_eval_symbol <- function(expr, mask, env) {
   # Otherwise, try evaluating in the `env`
   out <- eval_bare(expr, env)
 
-  # Wrap in a list to match "chunk" result style
-  out <- list(out)
-
   out
 }
 
 hybrid_eval_literal <- function(expr, mask, env) {
-  # Wrap in a list to match "chunk" result style
-  list(expr)
+  expr
 }

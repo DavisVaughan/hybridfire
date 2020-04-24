@@ -26,3 +26,7 @@ is_hybrid_list_of_atomics <- function(x) {
 
   !is.object(x)
 }
+
+any_hybrid_lists <- function(x) {
+  any(purrr::map_lgl(x, is_hybrid_list))
+}

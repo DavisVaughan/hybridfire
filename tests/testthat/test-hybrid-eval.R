@@ -18,7 +18,7 @@ test_that("can eval variables from hybrid mask", {
   mask <- list(a = col)
   expr <- expr(a)
 
-  expect_identical(hybrid_eval(expr, mask), col)
+  expect_identical(hybrid_eval(expr, mask), unclass(col))
 })
 
 test_that("hybrid mask takes precedence over env", {
@@ -27,7 +27,7 @@ test_that("hybrid mask takes precedence over env", {
   mask <- list(x = col)
   expr <- expr(x)
 
-  expect_identical(hybrid_eval(expr, mask), col)
+  expect_identical(hybrid_eval(expr, mask), unclass(col))
 })
 
 # ------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ test_that("mean() is hybridized with 1 mask column", {
   expect_signal_hybrid_replaced(hybrid_eval(expr, mask))
 })
 
-test_that("mean() is hybridized with outside variable", {
+test_that("mean() is not hybridized with outside variable", {
   x <- 1:5
 
   expr <- expr(mean(x))
@@ -106,7 +106,20 @@ test_that("mean() is hybridized with outside variable", {
 
   expect_identical(hybrid_eval(expr), expect)
 
-  expect_signal_hybrid_replaced(hybrid_eval(expr))
+  expect_no_signal_hybrid_replaced(hybrid_eval(expr))
+})
+
+test_that("mean() is hybridized with `na.rm` specified", {
+  col <- hybrid_list(1:2, c(3, 4, NA))
+  mask <- list(a = col)
+
+  expr <- expr(mean(a, na.rm = TRUE))
+
+  expect <- map(col, mean, na.rm = TRUE)
+
+  expect_identical(hybrid_eval(expr, mask), expect)
+
+  expect_signal_hybrid_replaced(hybrid_eval(expr, mask))
 })
 
 test_that("mean() is not hybridized with `trim` specified", {
