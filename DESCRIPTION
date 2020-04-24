@@ -19,3 +19,5 @@ Imports:
     purrr
 Suggests: 
     testthat
+URL: https://github.com/DavisVaughan/hybridfire
+BugReports: https://github.com/DavisVaughan/hybridfire/issues
