@@ -173,3 +173,26 @@ test_that("mean() is hybridized when mixed with non hybridized calls", {
 
   expect_signal_hybrid_replaced(hybrid_eval(expr, mask))
 })
+
+test_that("mean() is not hybridized when `na.rm` isn't a bool", {
+  col_a <- hybrid_list(1, 2)
+  col_b <- hybrid_list(TRUE, FALSE)
+  mask <- list(a = col_a, b = col_b)
+
+  expr <- expr(mean(a, na.rm = b))
+
+  expect_identical(hybrid_eval(expr, mask), list(1, 2))
+
+  expect_no_signal_hybrid_replaced(hybrid_eval(expr, mask))
+})
+
+test_that("hybrid eval works with function with no args", {
+  col <- hybrid_list(1:2, 3:5)
+  mask <- list(a = col)
+
+  fn <- function() 1
+
+  expr <- expr(fn())
+
+  expect_identical(hybrid_eval(expr, mask), list(1))
+})
