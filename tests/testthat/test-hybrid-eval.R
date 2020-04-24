@@ -104,9 +104,9 @@ test_that("mean() is hybridized with outside variable", {
 
   expect <- map(list(x), mean)
 
-  expect_identical(hybrid_eval(expr, mask), expect)
+  expect_identical(hybrid_eval(expr), expect)
 
-  expect_signal_hybrid_replaced(hybrid_eval(expr, mask))
+  expect_signal_hybrid_replaced(hybrid_eval(expr))
 })
 
 test_that("mean() is not hybridized with `trim` specified", {
